@@ -1,151 +1,94 @@
-// Define UI Vars
-const form = document.querySelector("#task-form");
-const taskList = document.querySelector(".collection");
-const clearBtn = document.querySelector(".clear-tasks");
-const filter = document.querySelector("#filter");
-const taskInput = document.querySelector("#task");
+// ****************************************************************STORAGE
 
-// Load all event listeners
+// Init storage
+const storage = new Storage();
 
-loadEventListeners();
+// Get stored location data
+const weatherLocation = storage.getStoredLocationData();
+console.log(
+  'Location set from local storage or set to default: ',
+  weatherLocation
+);
 
-// Load Event Listeners Func
+//*****************************************************************GEOCODING
 
-// QUESTION
-// (Should const be used here?)
-// ANSWER
-// I think this way is an alternative to what Brad used:
-// function loadEventListeners() {...}
-// ANSWER 2: Nevermind, the way I had it might need to be defined before it is called? it caused an error.
+// Init geocode object (prep for google api call)
+const geocode = new Geocode(weatherLocation.city, weatherLocation.stateprov);
+console.log(
+  '"Geocode" object for fetching official location name & coordinates via Google Geocoding API initialized for specified location: ',
+  geocode
+);
+// Change weather
+// geocode.changeLocation('Bancroft', 'ON')
 
-function loadEventListeners() {
-  document.addEventListener("DOMContentLoaded", getTasks);
-  // QUESTION
-  // Should 'const? + addTask = ' be added? Should there be 'type: ' before 'submit'?
+// Get coords on DOM Load, then get weather
+document.addEventListener('DOMContentLoaded', getLocData);
 
-  // CORRECTION
-  // from: document.addEventListener('submit', taskInput);
-  // to:
-  form.addEventListener("submit", addTask);
-  // CORRECTION: had document.querySelector('collection-item').addEventListener(...)
-  taskList.addEventListener("click", removeTask);
-  clearBtn.addEventListener("click", clearTasks);
-  filter.addEventListener("keyup", filterTasks);
+// Change location listener
+document.getElementById('w-change-btn').addEventListener('click', (e) => {
+  const city = document.getElementById('city').value;
+  const stateprov = document.getElementById('stateprov').value;
+  console.log('Change location listener input values: ', city, stateprov);
+
+  geocode.changeLocation(city, stateprov);
+
+  // Store location data to local storage
+  storage.storeLocationData(city, stateprov);
+
+  // Get and display weather
+  getLocData();
+
+  // Close Modal
+  $('#locModal').modal('hide');
+});
+
+// ******************************************************DOM LOAD FUNCTION
+// ***************************************************GOOGLE GEOCODING API CALL
+
+// Get coords (and location name)
+// from Google API, then get weather
+function getLocData() {
+  console.log(
+    'Document loaded, preparing to retrieve specified location name & coordinates...'
+  );
+  geocode
+    .getLocData()
+    .then((response) => {
+      console.log("Google's API response: ");
+      console.log('Retrieved location name: ', response.locName);
+      console.log('Retrieved coordinates: ', response.locCoords);
+      geocode.locDataToVar(response);
+      initWeather(response.locCoords);
+      getWeather();
+    })
+    .catch((err) => console.log(err));
 }
 
-// Insert Local Tasks Function
-function getTasks() {
-  let tasks;
-  if (localStorage.getItem("tasks") === null) {
-    tasks = [];
-  } else {
-    tasks = JSON.parse(localStorage.getItem("tasks"));
-  }
+// *************************************************************WEATHER
 
-  tasks.forEach(function (Task) {
-    const li = document.createElement("li");
-
-    li.className = "collection-item";
-
-    li.appendChild(document.createTextNode(Task));
-
-    const link = document.createElement("a");
-
-    link.className = "delete-item secondary-content";
-
-    link.innerHTML = '<i class="fa fa-remove"></i>';
-
-    li.appendChild(link);
-
-    taskList.appendChild(li);
-  });
+// Init weather object
+let weather;
+function initWeather(coords) {
+  weather = new Weather(coords.lat, coords.lng);
+  console.log(
+    '"Weather" object initialized. Ready to fetch weather using specified coordinates via "Open Weather Map" API: ',
+    weather
+  );
 }
 
-function addTask(e) {
-  e.preventDefault;
-  // CORRECTION: added .value. I confused the element itself (taskInput) with its value property.
-  if (taskInput.value === "") {
-    alert("Please enter a task.");
-    return;
-  }
+// Init UI
+const ui = new UI();
 
-  const li = document.createElement("li");
+// *********************************************************OPEN WEATHER MAP API CALL
 
-  // CORRECTION: was 'li.className("collection-item");' I confused properties and methods
-  li.className = "collection-item"; // <-- Property
-  li.appendChild(document.createTextNode(taskInput.value)); // <-- Method
+// Get weather from OpenWeatherMap API, then paint ui
+function getWeather() {
+  weather
+    .getWeather()
+    .then((response) => {
+      console.log("OpenWeatherMap's API response: ", response);
 
-  const link = document.createElement("a");
-  link.className = "delete-item secondary-content";
-  // CORRECTION: was 'link.innerHtml' must capitolize HTML
-  link.innerHTML = '<i class="fa fa-remove"></i>';
-
-  li.appendChild(link);
-
-  taskList.appendChild(li);
-
-  //******************************** STORE IN LS
-  storeInLocalStorage(taskInput.value);
-
-  taskInput.value = "";
-}
-
-function storeInLocalStorage(task) {
-  let tasks;
-  if (localStorage.getItem("tasks") === null) {
-    tasks = [];
-  } else {
-    tasks = JSON.parse(localStorage.getItem("tasks"));
-  }
-  tasks.push(task);
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-}
-
-function removeTask(e) {
-  if (e.target.parentElement.classList.contains("delete-item")) {
-    if (confirm("Are you sure?")) {
-      e.target.parentElement.parentElement.remove();
-
-      // Remove from LS
-      removeTaskFromLocalStorage(e.target.parentElement.parentElement);
-    }
-  }
-}
-
-function removeTaskFromLocalStorage(task) {
-  let tasks;
-  if (localStorage.getItem("tasks") === null) {
-    tasks = [];
-  } else {
-    tasks = JSON.parse(localStorage.getItem("tasks"));
-  }
-
-  tasks.forEach(function (storedTask, index) {
-    if (task.textContent === storedTask) {
-      tasks.splice(index, 1);
-    }
-  });
-
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-}
-
-function clearTasks() {
-  // taskList.innerHTML = ""; WORKED
-  while (taskList.firstChild) {
-    removeTaskFromLocalStorage(taskList.firstChild);
-    taskList.removeChild(taskList.firstChild);
-  }
-}
-
-function filterTasks(e) {
-  const filterInput = e.target.value.toLowerCase();
-
-  document.querySelectorAll(".collection-item").forEach(function (task) {
-    const item = task.firstChild.textContent;
-    if (item.toLowerCase().indexOf(filterInput) != -1) {
-      task.style.display = "block";
-    } else {
-      task.style.display = "none";
-    }
-  });
+      ui.paint(response);
+    })
+    .catch((err) => console.log(err));
 }

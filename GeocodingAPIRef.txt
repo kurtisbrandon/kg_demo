@@ -1,0 +1,70 @@
+Google api key: AIzaSyAtKvmbW4kAFDNcbiigCXWVtoiJxNVLQ4w
+
+Google Geocoding Request example:
+  https://maps.googleapis.com/maps/api/geocode/json?address=Bancroft,+++ON&key=AIzaSyAtKvmbW4kAFDNcbiigCXWVtoiJxNVLQ4w
+
+  Ex. Response:
+  {
+    "results" : [
+       {
+          "address_components" : [
+             {
+                "long_name" : "Bancroft",
+                "short_name" : "Bancroft",
+                "types" : [ "locality", "political" ]
+             },
+             {
+                "long_name" : "Hastings County",
+                "short_name" : "Hastings County",
+                "types" : [ "administrative_area_level_2", "political" ]
+             },
+             {
+                "long_name" : "Ontario",
+                "short_name" : "ON",
+                "types" : [ "administrative_area_level_1", "political" ]
+             },
+             {
+                "long_name" : "Canada",
+                "short_name" : "CA",
+                "types" : [ "country", "political" ]
+             },
+             {
+                "long_name" : "K0L",
+                "short_name" : "K0L",
+                "types" : [ "postal_code", "postal_code_prefix" ]
+             }
+          ],
+          "formatted_address" : "Bancroft, ON K0L, Canada",
+          "geometry" : {
+             "bounds" : {
+                "northeast" : {
+                   "lat" : 45.1362349,
+                   "lng" : -77.63015999999999
+                },
+                "southwest" : {
+                   "lat" : 44.95194790000001,
+                   "lng" : -77.905147
+                }
+             },
+             "location" : {
+                "lat" : 45.0558574,
+                "lng" : -77.8548814
+             },
+             "location_type" : "APPROXIMATE",
+             "viewport" : {
+                "northeast" : {
+                   "lat" : 45.1362349,
+                   "lng" : -77.63015999999999
+                },
+                "southwest" : {
+                   "lat" : 44.95194790000001,
+                   "lng" : -77.905147
+                }
+             }
+          },
+          "place_id" : "ChIJpXVGdVZ71EwRqgHG6arF0ls",
+          "types" : [ "locality", "political" ]
+       }
+    ],
+    "status" : "OK"
+ }
