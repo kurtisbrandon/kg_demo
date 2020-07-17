@@ -49,6 +49,9 @@ const StorageCtrl = (function () {
         }
       });
       localStorage.setItem('items', JSON.stringify(items));
+    },
+    clearData: function () {
+      localStorage.clear();
     }
   }
 })();
@@ -471,6 +474,7 @@ const App = (function (ItemCtrl, UICtrl) {
 
     ItemCtrl.clearData();
     ItemCtrl.getTotalCalories();
+    StorageCtrl.clearData();
     UICtrl.clearItems();
     UICtrl.updateTotalCalories(0);
     UICtrl.exitEditState();
